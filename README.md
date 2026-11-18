@@ -48,7 +48,7 @@ allmanga-anymex-extension/
 4. Commit and push the changes.
 5. Open the raw catalogue URL:
 
-   `https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/allmanga-anymex-extension/main/anime_index.json`
+   `https://raw.githubusercontent.com/fumioryoto/allmanga-anymex-extension/main/anime_index.json`
 
 6. Add that URL under AnymeX's **Anime repository** settings.
 
