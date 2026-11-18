@@ -6,7 +6,7 @@ const mangayomiSources = [{
     "iconUrl": "https://raw.githubusercontent.com/fumioryoto/my-anymex-extensions/main/javascript/icon/en.allmanga.png",
     "typeSource": "single",
     "itemType": 0,
-    "version": "0.1.0",
+    "version": "0.1.1",
     "pkgPath": "manga/src/en/allmanga.js"
 }];
 
@@ -15,12 +15,14 @@ const mangayomiSources = [{
 // Hashes change when the site redeploys. They can be overridden in the app
 // (source settings) without editing this file. See README.md > "Capturing hashes".
 //   VERIFIED  : H_DETAIL (tested in browser, HTTP 200)
-//   UNVERIFIED: H_LIST, H_PAGES (empty until captured) and the variable shapes
-//               marked "GUESS" below.
+//   CAPTURED  : list / popular / home hashes and variables (response shape not yet verified)
+//   UNVERIFIED: pages hash (empty until captured) and anything marked "GUESS".
 // ─────────────────────────────────────────────────────────────────────────────
 const DEFAULT_HASHES = {
     detail: "d77781dcf964b97aea0be621dbde430e89e200b58526823ee6010dd11c3ca96a",
-    list: "",
+    list: "2d48e19fb67ddcac42fbb885204b6abb0a84f406f15ef83f36de4a66f49f651a",     // captured: search + browse
+    popular: "60f50b84bb545fa25ee7f7c8c0adbf8f5cea40f7b1ef8501cbbff70e38589489",  // captured: {type,size,dateRange,page}
+    home: "fbd24de3aec73d35332185b621beec15396aaf8e8ae00183ddac6c19fbf8adcf",     // captured: {search:{queryType:"Home"},page}
     pages: ""
 };
 // Prefix for relative paths like "mcovers/m_tbs/<id>/i3_001.webp". GUESS: verify.
@@ -97,8 +99,23 @@ class DefaultExtension extends MProvider {
     }
 
     // ───────── browse ─────────
-    toList(edges) {
-        return (edges || []).map(m => ({
+    // The response root key is not verified (could be "shows", "mangas", ...), so find the
+    // first node that has an edges/recommendations array and unwrap card wrappers.
+    extractItems(data) {
+        const keys = Object.keys(data || {});
+        for (const k of keys) {
+            const v = data[k];
+            if (!v) continue;
+            const arr = Array.isArray(v) ? v : (v.edges || v.recommendations || null);
+            if (Array.isArray(arr)) {
+                return arr.map(x => x.anyCard || x.node || x).filter(x => x && x._id);
+            }
+        }
+        return [];
+    }
+
+    toList(items) {
+        return items.map(m => ({
             name: m.englishName || m.name,
             imageUrl: this.img(m.thumbnail),
             link: "/manga/" + m._id
@@ -106,24 +123,40 @@ class DefaultExtension extends MProvider {
     }
 
     async fetchList(search, page) {
-        // GUESS: variable shape copied from the site's older search call; verify with captured request.
+        const s = Object.assign({ isManga: true }, search);
         const data = await this.gql("list", {
-            search: Object.assign({ allowAdult: false, allowUnknown: false }, search),
+            search: s,
             limit: PAGE_SIZE,
             page: page,
             translationType: this.translationType,
             countryOrigin: "ALL"
         });
-        const list = this.toList(data.mangas.edges);
+        const list = this.toList(this.extractItems(data));
         return { list, hasNextPage: list.length >= PAGE_SIZE };
     }
 
     async getPopular(page) {
-        return this.fetchList({ sortBy: "Top" }, page); // GUESS: sortBy value
+        try {
+            const data = await this.gql("popular", {
+                type: "manga", size: 20, dateRange: 1, page: page,
+                allowUnknown: false, allowAdult: false
+            });
+            const list = this.toList(this.extractItems(data));
+            if (list.length) return { list, hasNextPage: list.length >= 20 };
+        } catch (e) {}
+        return this.fetchList({}, page); // fallback: default browse
     }
 
     async getLatestUpdates(page) {
-        return this.fetchList({ sortBy: "Latest_Update" }, page); // GUESS: sortBy value
+        try {
+            const data = await this.gql("home", {
+                search: { format: "manga", queryType: "Home", allowUnknown: false, allowAdult: false },
+                page: page
+            });
+            const list = this.toList(this.extractItems(data));
+            if (list.length) return { list, hasNextPage: list.length >= 20 };
+        } catch (e) {}
+        return this.fetchList({}, page);
     }
 
     async search(query, page, filters) {
@@ -238,7 +271,27 @@ class DefaultExtension extends MProvider {
                 key: "hash_list",
                 editTextPreference: {
                     title: "Search/browse query hash",
-                    summary: "Required for Popular, Latest and Search",
+                    summary: "Leave empty to use the built-in hash",
+                    value: "",
+                    dialogTitle: "sha256 hash",
+                    dialogMessage: ""
+                }
+            },
+            {
+                key: "hash_popular",
+                editTextPreference: {
+                    title: "Popular query hash",
+                    summary: "Leave empty to use the built-in hash",
+                    value: "",
+                    dialogTitle: "sha256 hash",
+                    dialogMessage: ""
+                }
+            },
+            {
+                key: "hash_home",
+                editTextPreference: {
+                    title: "Latest (home) query hash",
+                    summary: "Leave empty to use the built-in hash",
                     value: "",
                     dialogTitle: "sha256 hash",
                     dialogMessage: ""
