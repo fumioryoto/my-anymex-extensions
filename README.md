@@ -20,7 +20,7 @@ my-anymex-extensions/
 | Feature | State |
 |---|---|
 | Manga details + chapter list | Verified against the live API |
-| Popular / Latest / Search | Needs the list hash (see below) |
+| Search / Popular / Latest | Hashes and variables captured from the site; response shape not yet verified |
 | Chapter images | Needs the pages hash and image host (see below) |
 | Cloudflare | `api.allanime.day` is behind an interactive challenge; depends on the app's WebView handling |
 
