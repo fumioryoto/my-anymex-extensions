@@ -10,7 +10,7 @@
     "dateFormatLocale": "",
     "isNsfw": false,
     "hasCloudflare": false,
-    "sourceCodeUrl": "https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/allmanga-anymex-extension/main/javascript/anime/src/en/allmanga.js",
+    "sourceCodeUrl": "https://raw.githubusercontent.com/fumioryoto/allmanga-anymex-extension/main/javascript/anime/src/en/allmanga.js",
     "apiUrl": "https://api.allanime.day/api",
     "version": "0.1.0",
     "isManga": false,
