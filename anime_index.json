@@ -1,0 +1,24 @@
+[
+  {
+    "name": "AllManga",
+    "id": 824761039,
+    "baseUrl": "https://allmanga.to/anime",
+    "lang": "en",
+    "typeSource": "single",
+    "iconUrl": "https://www.google.com/s2/favicons?sz=256&domain=allmanga.to",
+    "dateFormat": "",
+    "dateFormatLocale": "",
+    "isNsfw": false,
+    "hasCloudflare": false,
+    "sourceCodeUrl": "https://raw.githubusercontent.com/YOUR_GITHUB_USERNAME/allmanga-anymex-extension/main/javascript/anime/src/en/allmanga.js",
+    "apiUrl": "https://api.allanime.day/api",
+    "version": "0.1.0",
+    "isManga": false,
+    "itemType": 1,
+    "isFullData": false,
+    "appMinVerReq": "0.5.0",
+    "additionalParams": "",
+    "sourceCodeLanguage": 1,
+    "notes": "Unofficial community source."
+  }
+]
